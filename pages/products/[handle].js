@@ -8,9 +8,13 @@ import { productsQuery } from "../../src/queries/products";
 import WhatsAppButton from "../../components/Buttons/WhatsAppButton.jsx";
 import { useState } from "react";
 // import { checkoutMutation } from "../../src/queries/checkout";
-import shopify, { storefront } from "../../shopify";
+import Loader from "../../components/Loader.jsx"
+import shopify from "../../shopify";
 import Layout from "../../components/Layout";
 import { useRouter } from "next/router";
+import { gql } from "graphql-request";
+import { storeFront } from "../../utils";
+import Recommended from "../../components/Products/Recommended";
 
 export const getStaticPaths = async () => {
   const storefrontClient = new Shopify.Clients.Storefront(shop, storefrontAccessToken);
@@ -38,22 +42,22 @@ export const getStaticProps = async (context) => {
   return {
     props: {
       productItem,
+      products
     },
     revalidate: 1,
   };
 };
 
-const ProductPage = ({ productItem }) => {
+const ProductPage = ({ productItem, products }) => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { id, title, priceRange, images, tags, description, variants } = productItem.node;
+  const { id, title, priceRange, images, tags, description, variants, handle } = productItem.node;
   const { transformedSrc, altText } = images.edges[0].node;
   const amount = priceRange.minVariantPrice.amount.slice(0, -2);
   const tag = tags[0];
   const variantId = variants.edges[0].node.id;
-  console.log(variantId);
-  const checkoutMutation = {
-    data: `
+  const relatedProducts = products.filter(item => item.node.handle !== handle).slice(0, 4)
+  const checkoutMutation = `
     mutation CheckoutCreate($variantId: ID!) {
       checkoutCreate(input: { lineItems: { variantId: $variantId, quantity: 1 } }) {
         checkout {
@@ -61,18 +65,14 @@ const ProductPage = ({ productItem }) => {
         }
       }
     }
-  `,
-  };
-  async function handleCheckoutClick() {
+  `;
+  const handleCheckoutClick = async () => {
     setIsLoading(true);
 
-    const { data } = await shopify(checkoutMutation, variantId);
+    const { data } = await storeFront(checkoutMutation, { variantId: variantId });
     const { webUrl } = await data.checkoutCreate.checkout;
-    console.log(webUrl);
-    //Checkout Button
-    // const { data } = await storefront(checkoutMutation, variantId);
-    // const response = await storefront(checkoutMutation, variantId);
-    // console.log(response);
+    window.location.href = webUrl
+    setIsLoading(false);
   }
 
   const router = useRouter();
@@ -94,7 +94,6 @@ const ProductPage = ({ productItem }) => {
             />
           </figure>
         </div>
-        {/* Product info */}
         <div className="max-w-2xl mx-auto pb-16 px-4 sm:px-0 lg:pt-0 lg:pb-24 lg:grid lg:grid-cols-1 lg:grid-rows-[auto,auto,1fr] ">
           <div className="lg:col-span-2 ">
             <h4 className="mb-2 text-sm text-gray-600">{tag}</h4>
@@ -116,35 +115,16 @@ const ProductPage = ({ productItem }) => {
           {/* Price and ADD TO CART */}
           <div className="mt-4 lg:mt-0">
             <h2 className="sr-only">Product information</h2>
-            <div className="flex flex-col gap-5 lg:flex-row">
-              {/* <button
+            <div className="flex flex-col gap-5 ">
+              <button
                 onClick={handleCheckoutClick}
                 className="flex items-center justify-center w-full px-8 py-3 text-base font-medium text-white transition-colors bg-gray-900 border border-transparent rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 {isLoading && (
-                  <svg
-                    className="w-5 h-5 mr-3 -ml-1 text-white animate-spin"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                  <Loader />
                 )}
                 Pagar ahora S/.{amount}
-              </button> */}
+              </button>
               {/*  BOTON DE WHATS APP */}
               <WhatsAppButton handleWAclick={handleWACLick} title={title} amount={amount} tag={tag} />
             </div>
@@ -153,19 +133,13 @@ const ProductPage = ({ productItem }) => {
             </p>
             <p className="mt-5 text-xs text-gray-800">*Pronto se habilitaran otros medios de pago.</p>
           </div>
-          {/* Price and ADD TO CART  END */}
+        </div>
+        <div className="col-span-2">
+          <Recommended products={relatedProducts} />
         </div>
       </section>
     </Layout>
   );
 };
-
-// export const getServerSideProps = async (context) => {
-//  const res = await getProductsData();
-
-// }
-// const getProducts = async() => {
-//   return products
-// }
 
 export default ProductPage;

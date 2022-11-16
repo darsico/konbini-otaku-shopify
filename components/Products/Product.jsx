@@ -26,7 +26,7 @@ const Product = ({ product }) => {
           </div>
           <h3 className="mt-4 text-sm text-gray-700"></h3>
           <div className="flex justify-between items-center">
-            <p className="mt-1 text-lg font-medium text-gray-900">{title}</p>
+            <p className="mt-1 text-lg font-medium text-gray-900 leading-5">{title}</p>
             <p className=" text-base font-medium text-gray-600 pl-2">S/.{amount}</p>
           </div>
         </a>
