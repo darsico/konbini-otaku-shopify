@@ -82,7 +82,7 @@ const ProductPage = ({ productItem, products }) => {
 
   return (
     <Layout title={title} description={description}>
-      <section className="grid items-start w-11/12 , grid-cols-1 md:grid-cols-2 p-6 mx-auto md:max-w-screen-lg md:flex-row gap-4 lg:gap-5 ">
+      <section className="grid items-start w-11/12  grid-cols-1 md:grid-cols-2 p-6 mx-auto md:max-w-screen-lg md:flex-row gap-4 lg:gap-5 ">
         <div className="aspect-[4/4]  sm:rounded sm:overflow-hidden lg:aspect-w-3 lg:aspect-h-4">
           <figure style={{ width: "100%", height: "100%", position: "relative" }}>
             <Image
@@ -134,9 +134,9 @@ const ProductPage = ({ productItem, products }) => {
             <p className="mt-5 text-xs text-gray-800">*Pronto se habilitaran otros medios de pago.</p>
           </div>
         </div>
-        <div className="col-span-2">
-          <Recommended products={relatedProducts} />
-        </div>
+      </section>
+      <section className="col-span-2">
+        <Recommended products={relatedProducts} />
       </section>
     </Layout>
   );
