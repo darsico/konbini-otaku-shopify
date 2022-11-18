@@ -58,9 +58,10 @@ const ProductPage = ({ productItem, products }) => {
   const variantId = variants.edges[0].node.id;
   const relatedProducts = products.filter(item => item.node.handle !== handle).slice(0, 4)
   const checkoutMutation = `
-    mutation CheckoutCreate($variantId: ID!) {
-      checkoutCreate(input: { lineItems: { variantId: $variantId, quantity: 1 } }) {
+    mutation CheckoutCreate($variantId: ID!, $qty: Int!) {
+      checkoutCreate(input: { lineItems: { variantId: $variantId, quantity: $qty} }) {
         checkout {
+          id
           webUrl
         }
       }
@@ -68,11 +69,14 @@ const ProductPage = ({ productItem, products }) => {
   `;
   const handleCheckoutClick = async () => {
     setIsLoading(true);
-
-    const { data } = await storeFront(checkoutMutation, { variantId: variantId });
+    const variables = {
+      variantId: variantId,
+      qty: 1
+    }
+    const { data } = await storeFront(checkoutMutation, variables);
     const { webUrl } = await data.checkoutCreate.checkout;
     window.location.href = webUrl
-    setIsLoading(false);
+
   }
 
   const router = useRouter();
@@ -82,7 +86,7 @@ const ProductPage = ({ productItem, products }) => {
 
   return (
     <Layout title={title} description={description}>
-      <section className="grid items-start w-11/12  grid-cols-1 md:grid-cols-2 p-6 mx-auto md:max-w-screen-lg md:flex-row gap-4 lg:gap-5 ">
+      <section className="grid items-start  grid-cols-1 md:grid-cols-2 mx-auto md:max-w-screen-lg md:flex-row gap-4 lg:gap-5 ">
         <div className="aspect-[4/4]  sm:rounded sm:overflow-hidden lg:aspect-w-3 lg:aspect-h-4">
           <figure style={{ width: "100%", height: "100%", position: "relative" }}>
             <Image
@@ -94,7 +98,7 @@ const ProductPage = ({ productItem, products }) => {
             />
           </figure>
         </div>
-        <div className="max-w-2xl mx-auto pb-16 px-4 sm:px-0 lg:pt-0 lg:pb-24 lg:grid lg:grid-cols-1 lg:grid-rows-[auto,auto,1fr] ">
+        <div className="max-w-2xl mx-auto pb-8 px-4 sm:px-0 lg:pt-0 lg:pb-24 lg:grid lg:grid-cols-1 lg:grid-rows-[auto,auto,1fr] ">
           <div className="lg:col-span-2 ">
             <h4 className="mb-2 text-sm text-gray-600">{tag}</h4>
             <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">{title}</h1>
@@ -135,7 +139,7 @@ const ProductPage = ({ productItem, products }) => {
           </div>
         </div>
       </section>
-      <section className="col-span-2">
+      <section className="col-span-2 px-4">
         <Recommended products={relatedProducts} />
       </section>
     </Layout>

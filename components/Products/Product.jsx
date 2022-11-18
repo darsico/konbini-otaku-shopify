@@ -1,15 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
-
-// import AddToCart from "../Cart/AddToCart";
+import AddToCart from "../Buttons/AddToCart";
 
 const Product = ({ product }) => {
-  const { title, handle, images, priceRange, id } = product;
+  const { title, handle, images, priceRange, variants } = product;
   const { transformedSrc, altText } = images.edges[0].node;
-
+  const variantId = variants.edges[0].node.id
   const amount = priceRange.minVariantPrice.amount.slice(0, -2);
+
+  const productProps = {
+    title, handle, transformedSrc, amount, variantId
+  }
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <Link href={`/products/${handle}`}>
         <a className="group">
           <div className="w-full aspect-[4/3]   rounded-lg  group-hover:opacity-75 shadow">
@@ -31,8 +34,8 @@ const Product = ({ product }) => {
           </div>
         </a>
       </Link>
-      {/* {"simple" === productType ? <AddToCart product={product} /> : null} */}
-    </>
+      <AddToCart {...productProps} />
+    </div>
   );
 };
 
